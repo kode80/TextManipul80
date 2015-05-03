@@ -29,12 +29,25 @@
     NSString *prefix = [self formatString:self.prefix.stringValue];
     NSString *postfix = [self formatString:self.postfix.stringValue];
     
-    NSArray *components = [self.text.string componentsSeparatedByString:delimiter];
-    NSMutableString *output = [NSMutableString string];
+    NSArray *valueStrings = [self.text.string componentsSeparatedByString:delimiter];
+    valueStrings = [[NSSet setWithArray:valueStrings] allObjects];
+    valueStrings = [valueStrings sortedArrayUsingComparator:^NSComparisonResult( NSString *string1, NSString *string2) {
+        return [string1 compare:string2
+                        options:NSNumericSearch];
+    }];
     
-    for( NSString *component in components)
+    NSMutableString *output = [NSMutableString string];
+    NSMutableString *composedString;
+    
+    for( NSString *valueString in valueStrings)
     {
-        [output appendFormat:@"%@%@%@", prefix, component, postfix];
+        composedString = [NSMutableString stringWithFormat:@"%@%@%@", prefix, valueString, postfix];
+        [composedString replaceOccurrencesOfString:@"%@"
+                                        withString:valueString
+                                           options:0
+                                             range:NSMakeRange( 0, composedString.length)];
+        
+        [output appendString:composedString];
     }
     
     self.text.string = output;
@@ -62,5 +75,7 @@
     
     return [NSString stringWithString:output];
 }
+
+
 
 @end
